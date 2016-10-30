@@ -114,8 +114,8 @@ if door.open:
         openMinutes = (now - openSince).seconds/60
         msg += " It has been open for " + str(openMinutes) + " minute(s)."
 
-        # If it has been open for more than 15 minutes also specify @channel
-        if openMinutes > 2:
+        # If it has been open for more than specified minute threshold also specify @channel
+        if openMinutes > config.get('channelNotifyMinutes'):
             msg = "<!channel>: " + msg
 else:
     # If door was previously open - clear open state and send a message it is now closed

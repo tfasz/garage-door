@@ -1,4 +1,5 @@
 {
+  "channelNotifyMinutes": 15,
   "particle.url": "https://api.particle.io/v1/devices/",
   "particle.device": "[deviceid]",
   "particle.variable": "garageDoor",
