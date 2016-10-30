@@ -1,0 +1,8 @@
+{
+  "particle.url": "https://api.particle.io/v1/devices/",
+  "particle.device": "[deviceid]",
+  "particle.variable": "garageDoor",
+  "particle.token": "[token]",
+  "slack.url": "https://hooks.slack.com/services/[slack-details]",
+  "slack.user": "[user]"
+}
