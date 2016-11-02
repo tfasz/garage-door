@@ -65,13 +65,13 @@ class DoorState:
             gd = q.read()
             q.close()
             self.value = int(gd)
-            log.debug("Value: " + str(self.value))
 
             if self.value <= 0 or self.value > 10000:
                 self.valid = False
                 log.debug("Door value is too high - ignoring. Value: " + str(self.value))
             elif self.value > 2000:
                 self.open = True
+            log.debug("Value: " + str(self.value) + " -> Open: " + str(self.open))
         except Exception as e:
             self.valid = False
             log.exception("Error getting door value.")
