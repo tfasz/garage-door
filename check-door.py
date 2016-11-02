@@ -69,7 +69,7 @@ class DoorState:
 
             if self.value <= 0 or self.value > 10000:
                 self.valid = False
-                log.debug("Door value is too high - ignoring. Value: " + self.value)
+                log.debug("Door value is too high - ignoring. Value: " + str(self.value))
             elif self.value > 2000:
                 self.open = True
         except Exception as e:
