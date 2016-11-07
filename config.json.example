@@ -1,9 +1,10 @@
 {
   "channelNotifyMinutes": 15,
-  "particle.url": "https://api.particle.io/v1/devices",
-  "particle.device": "[deviceid]",
+  "particle.url": "https://api.particle.io/v1/devices/{0}/{1}?access_token={2}&format=raw",
+  "particle.device": "[DEVICEID]",
   "particle.variable": "garageDoor",
-  "particle.token": "[token]",
-  "slack.url": "https://hooks.slack.com/services/[slack-details]",
-  "slack.user": "[user]"
+  "particle.token": "[DEVICETOKEN]",
+  "slack.url": "https://hooks.slack.com/services/[SLACKDETAILS]",
+  "slack.channel": "home-garagedoor",
+  "slack.user": "[USER]"
 }
