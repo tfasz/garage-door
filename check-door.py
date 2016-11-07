@@ -57,7 +57,7 @@ class AppState:
 # Load our garage door state from sensor info published to Particle cloud
 class DoorState:
     def __init__(self, config):
-        self.valid = True
+        self.valid = False
         self.open = False
         try:
             url = '{0}/{1}/{2}?access_token={3}&format=raw'.format(config.get('particle.url'), config.get('particle.device'), config.get('particle.variable'), config.get('particle.token'))
@@ -66,15 +66,16 @@ class DoorState:
             q.close()
             self.value = int(gd)
 
-            if self.value <= 0 or self.value > 10000:
-                self.valid = False
-            elif self.value > 800:
-                self.open = True
-            log.debug("Value: " + str(self.value) + ", Valid: " + str(self.valid) + ", Open: " + str(self.open))
+            # Ignore values if too large or small - assume something is wrong with sensor data
+            if self.value > 0 and self.value < 10000:
+                self.valid = True 
+                if self.value > 800:
+                    self.open = True
+            log.debug('Value: {0}, Valid: {1}, Open: {2}'.format(self.value, self.valid, self.open))
         except Exception as e:
-            self.valid = False
             log.exception("Error getting door value.")
 
+# Logic to post to Slack API: https://api.slack.com/incoming-webhooks#sending_messages
 class Slack:
     def __init__(self, config):
         self.config = config
@@ -82,8 +83,9 @@ class Slack:
     def send(self, msg):
         try:
             log.debug('Sending message: ' + msg)
+            data = 'payload={{"username": "{0}", "text": "{1}"}}'.format(config.get('slack.user'), msg)
             r = urllib2.Request(config.get('slack.url'))
-            urllib2.urlopen(r,'payload={"username": "' + config.get('slack.user') + '", "text": "' + msg + '"}')
+            urllib2.urlopen(r, data)
         except Exception as e:
             log.exception("Error sending message.")
 
