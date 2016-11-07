@@ -68,10 +68,9 @@ class DoorState:
 
             if self.value <= 0 or self.value > 10000:
                 self.valid = False
-                log.debug("Door value is too high - ignoring. Value: " + str(self.value))
-            elif self.value > 2000:
+            elif self.value > 800:
                 self.open = True
-            log.debug("Value: " + str(self.value) + " -> Open: " + str(self.open))
+            log.debug("Value: " + str(self.value) + ", Valid: " + str(self.valid) + ", Open: " + str(self.open))
         except Exception as e:
             self.valid = False
             log.exception("Error getting door value.")
@@ -88,16 +87,15 @@ class Slack:
         except Exception as e:
             log.exception("Error sending message.")
 
-# Load app and door state
+# Load config and door state
 config = AppConfig()
-state = AppState()
 door = DoorState(config)
-slack = Slack(config)
 
 if not door.valid:
     sys.exit() 
 
 # Check previous state 
+state = AppState()
 openSince = None
 if state.isSet('openSince'):
     openSince = dateutil.parser.parse(state.get('openSince'))
@@ -106,17 +104,19 @@ if state.isSet('openSince'):
 
 msg = None
 if door.open:
-    log.debug("Door is open")
     msg = 'Garage door is open.'
+
+    # Flip our state flag to open if it is not already set
     if openSince is None:
         state.set('openSince', now.isoformat())
     else:
         openMinutes = (now - openSince).seconds/60
-        msg += " It has been open for " + str(openMinutes) + " minute(s)."
+        if openMinutes > 0:
+            msg = "Garage door has been open for " + str(openMinutes) + " minute(s)."
 
-        # If it has been open for more than specified minute threshold also specify @channel
-        if openMinutes > config.get('channelNotifyMinutes'):
-            msg = "<!channel>: " + msg
+            # If it has been open for more than specified minute threshold also specify @channel
+            if openMinutes > config.get('channelNotifyMinutes'):
+                msg = "<!channel>: " + msg
 else:
     # If door was previously open - clear open state and send a message it is now closed
     if not openSince is None:
@@ -125,6 +125,7 @@ else:
 
 # Send message if we have one to post
 if not msg is None:
+    slack = Slack(config)
     slack.send(msg)
 
 # Save app state for next time
