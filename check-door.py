@@ -60,8 +60,8 @@ class DoorState:
         self.valid = True
         self.open = False
         try:
-            q = urllib2.urlopen(config.get('particle.url') + config.get('particle.device') + '/' + config.get('particle.variable')
-                + '?access_token=' + config.get('particle.token') + '&format=raw')
+            url = '{0}/{1}/{2}?access_token={3}&format=raw'.format(config.get('particle.url'), config.get('particle.device'), config.get('particle.variable'), config.get('particle.token'))
+            q = urllib2.urlopen(url)
             gd = q.read()
             q.close()
             self.value = int(gd)
