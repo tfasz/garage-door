@@ -1,9 +1,12 @@
 # garage-door
 
 I wanted my 20 year old garage door to notify me if it was left open by accident. I looked into some of the 3rd party add-ons
-but none looked that exciting. 
+but none looked that exciting. Instead I hookup up a [Particle Photon](https://store.particle.io/) I had sitting around which publishes messages via Slack.
 
-Instead I hookup up a Particle Photon I had sitting around
+## Particle Setup
+
+My garage door ceiling is about 3 feet above my garage door. The Photon is plugged into a USB power supply via the electric
+outlet above the garage door. The Photon has an [IR sensor](https://www.adafruit.com/products/1031) pointed down from the ceiling - it hits the garage door if it is open and does not hit anything when the door is closed. The sensor is wired to the Photon power, ground, and analog pin A0. 
 
 ## Particle App
 
