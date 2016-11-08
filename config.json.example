@@ -6,5 +6,5 @@
   "particle.token": "[DEVICETOKEN]",
   "slack.url": "https://hooks.slack.com/services/[SLACKDETAILS]",
   "slack.channel": "home-garagedoor",
-  "slack.user": "[USER]"
+  "slack.user": "homepi"
 }
