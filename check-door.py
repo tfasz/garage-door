@@ -123,11 +123,12 @@ if door.open:
     # Only notify based on our notify interval - this keeps us from sending a Slack message every
     # time the sript runs (lets assume once per minute). 
     sendNotification = True
-    if state.isSet('lastNotify'):
-        lastNotify = state.getDate('lastNotify')
-        sendNotification = ((now - lastNotify).seconds/60) > config.get('notifyIntervalMinutes')
+    if state.isSet('lastOpenNotify'):
+        lastOpenNotify = state.getDate('lastOpenNotify')
+        sendNotification = ((now - lastOpenNotify).seconds/60) > config.get('notifyIntervalMinutes')
             
     if sendNotification:
+        state.set('lastOpenNotify', now.isoformat())
         msg = 'Garage door is open.'
         if openMinutes > 0:
             msg = "Garage door has been open for " + str(openMinutes) + " minute(s)."
@@ -143,14 +144,13 @@ else:
     # send this message - regardless of notify interval.
     if not openSince is None:
         state.set('openSince', None)
-        state.set('lastNotify', None)
+        state.set('lastOpenNotify', None)
         msg = 'Garage door is closed.'
 
 # Send message if we have one to post
 if not msg is None:
     slack = Slack(config)
     slack.send(msg)
-    state.set('lastNotify', now.isoformat())
 
 # Save app state for next time
 state.save()
