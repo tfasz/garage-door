@@ -66,14 +66,18 @@ class DoorState:
             q.close()
             self.value = int(gd)
 
-            # Ignore values if too large or small - assume something is wrong with sensor data
+            # Ignore values if too large or small - assume something is wrong with sensor data.
+            # Value is very consistently in the 200 range when closed.
             if self.value > 0 and self.value < 10000:
                 self.valid = True 
-                if self.value > 800:
+                if self.value > 500:
                     self.open = True
             log.debug('Value: {0}, Valid: {1}, Open: {2}'.format(self.value, self.valid, self.open))
         except Exception as e:
             log.exception("Error getting door value.")
+
+        # When debugging it is useful to hard-code the value
+        self.open = True
 
 # Logic to post to Slack API: https://api.slack.com/incoming-webhooks#sending_messages
 class Slack:
@@ -106,21 +110,33 @@ if state.isSet('openSince'):
 
 msg = None
 if door.open:
-    msg = 'Garage door is open.'
+    # Only notify based on our notify interval - this keeps us from sending a Slack message every
+    # time the sript runs (lets assume once per minute). 
+    sendNotification = True
+    if state.isSet('lastNotify'):
+        lastNotify = dateutil.parser.parse(state.get('lastNotify'))
+        sendNotification = ((now - lastNotify).seconds/60) > config.get('notifyIntervalMinutes')
+            
+    if sendNotification:
+        msg = 'Garage door is open.'
 
-    # Flip our state flag to open if it is not already set
-    if openSince is None:
-        state.set('openSince', now.isoformat())
+        # Flip our state flag to open if it is not already set
+        if openSince is None:
+            state.set('openSince', now.isoformat())
+        else:
+            openMinutes = (now - openSince).seconds/60
+            if openMinutes > 0:
+                msg = "Garage door has been open for " + str(openMinutes) + " minute(s)."
+
+                # If it has been open for more than specified minute threshold also specify @channel
+                if openMinutes > config.get('notifyChannelMinutes'):
+                    msg = "<!channel>: " + msg
     else:
-        openMinutes = (now - openSince).seconds/60
-        if openMinutes > 0:
-            msg = "Garage door has been open for " + str(openMinutes) + " minute(s)."
+        log.debug("Skipping sending notification due to notification interval.")
 
-            # If it has been open for more than specified minute threshold also specify @channel
-            if openMinutes > config.get('channelNotifyMinutes'):
-                msg = "<!channel>: " + msg
 else:
-    # If door was previously open - clear open state and send a message it is now closed
+    # If door was previously open - clear open state and send a message it is now closed. We always
+    # send this message - regardless of notify interval.
     if not openSince is None:
         state.set('openSince', None)
         msg = 'Garage door is closed.'
@@ -129,6 +145,7 @@ else:
 if not msg is None:
     slack = Slack(config)
     slack.send(msg)
+    state.set('lastNotify', now.isoformat())
 
 # Save app state for next time
 state.save()
