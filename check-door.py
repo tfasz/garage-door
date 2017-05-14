@@ -44,6 +44,9 @@ class AppState:
     def get(self, key):
         return self.stateJson[key]
 
+    def getDate(self, key):
+        return dateutil.parser.parse(self.stateJson[key])
+
     def set(self, key, value):
         self.stateJson[key] = value
 
@@ -77,7 +80,7 @@ class DoorState:
             log.exception("Error getting door value.")
 
         # When debugging it is useful to hard-code the value
-        self.open = True
+        #self.open = True
 
 # Logic to post to Slack API: https://api.slack.com/incoming-webhooks#sending_messages
 class Slack:
@@ -104,33 +107,34 @@ if not door.valid:
 state = AppState()
 openSince = None
 if state.isSet('openSince'):
-    openSince = dateutil.parser.parse(state.get('openSince'))
+    openSince = state.getDate('openSince')
     openSinceDisplay = openSince.strftime('%Y-%m-%d %H:%M:%S')
     log.debug("Door has been open since " + openSinceDisplay)
-
+        
 msg = None
 if door.open:
+    # Flip our state flag to open if it is not already set
+    if openSince is None:
+        state.set('openSince', now.isoformat())
+        openMinutes = 0
+    else:
+        openMinutes = (now - openSince).seconds/60
+
     # Only notify based on our notify interval - this keeps us from sending a Slack message every
     # time the sript runs (lets assume once per minute). 
     sendNotification = True
     if state.isSet('lastNotify'):
-        lastNotify = dateutil.parser.parse(state.get('lastNotify'))
+        lastNotify = state.getDate('lastNotify')
         sendNotification = ((now - lastNotify).seconds/60) > config.get('notifyIntervalMinutes')
             
     if sendNotification:
         msg = 'Garage door is open.'
+        if openMinutes > 0:
+            msg = "Garage door has been open for " + str(openMinutes) + " minute(s)."
 
-        # Flip our state flag to open if it is not already set
-        if openSince is None:
-            state.set('openSince', now.isoformat())
-        else:
-            openMinutes = (now - openSince).seconds/60
-            if openMinutes > 0:
-                msg = "Garage door has been open for " + str(openMinutes) + " minute(s)."
-
-                # If it has been open for more than specified minute threshold also specify @channel
-                if openMinutes > config.get('notifyChannelMinutes'):
-                    msg = "<!channel>: " + msg
+            # If it has been open for more than specified minute threshold also specify @channel
+            if openMinutes > config.get('notifyChannelMinutes'):
+                msg = "<!channel>: " + msg
     else:
         log.debug("Skipping sending notification due to notification interval.")
 
@@ -139,6 +143,7 @@ else:
     # send this message - regardless of notify interval.
     if not openSince is None:
         state.set('openSince', None)
+        state.set('lastNotify', None)
         msg = 'Garage door is closed.'
 
 # Send message if we have one to post
