@@ -1,11 +1,13 @@
 {
   "notifyChannelMinutes": 15,
   "notifyIntervalMinutes": 15,
+  "notifyQuietStart": "8:00",
+  "notifyQuietEnd": "17:30",
   "particle.url": "https://api.particle.io/v1/devices/{0}/{1}?access_token={2}&format=raw",
   "particle.device": "[DEVICEID]",
   "particle.variable": "garageDoor",
   "particle.token": "[DEVICETOKEN]",
   "slack.url": "https://hooks.slack.com/services/[SLACKDETAILS]",
   "slack.channel": "home-garagedoor",
-  "slack.user": "homepi"
+  "slack.user": "home-pi"
 }

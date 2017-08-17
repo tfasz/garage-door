@@ -6,6 +6,7 @@ import logging
 import logging.handlers
 import json
 import os
+import pytz
 import sys
 import time
 import urllib2
@@ -25,13 +26,22 @@ log.addHandler(logFile)
 # Manage config info
 class AppConfig:
     def __init__(self):
+        self.notify_quiet = False
         self.configJson = {} 
         configFile = appDir + '/config.json'
         if os.path.isfile(configFile):
             self.configJson = json.loads(open(configFile).read())
+            self.set_notify_quiet()
 
     def get(self, key):
         return self.configJson[key]
+
+    def set_notify_quiet(self):
+        now = datetime.datetime.now(pytz.timezone('US/Pacific'))
+        start = datetime.datetime.strptime(self.get('notifyQuietStart'), "%H:%M") 
+        end = datetime.datetime.strptime(self.get('notifyQuietEnd'), "%H:%M") 
+        self.notify_quiet = (now.hour >= start.hour and now.minute >= start.minute and now.hour <= end.hour and now.minute <= end.minute)
+        log.debug("Notifcations quiet: " + str(self.notify_quiet) + ", now: " + str(now) + ", start: " + str(start) + ", end: " + str(end))
 
 # Load our previous door state from last time we ran
 class AppState:
@@ -134,7 +144,7 @@ if door.open:
             msg = "Garage door has been open for " + str(openMinutes) + " minute(s)."
 
             # If it has been open for more than specified minute threshold also specify @channel
-            if openMinutes > config.get('notifyChannelMinutes'):
+            if openMinutes > config.get('notifyChannelMinutes') and not config.notify_quiet:
                 msg = "<!channel>: " + msg
     else:
         log.debug("Skipping sending notification due to notification interval.")
