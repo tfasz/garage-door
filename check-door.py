@@ -36,11 +36,14 @@ class AppConfig:
     def get(self, key):
         return self.configJson[key]
 
+    def get_minutes_into_day(self, date):
+        return (date.hour * 60) + date.minute
+
     def set_notify_quiet(self):
-        now = datetime.datetime.now(pytz.timezone('US/Pacific'))
-        start = datetime.datetime.strptime(self.get('notifyQuietStart'), "%H:%M") 
-        end = datetime.datetime.strptime(self.get('notifyQuietEnd'), "%H:%M") 
-        self.notify_quiet = (now.hour >= start.hour and now.minute >= start.minute and now.hour <= end.hour and now.minute <= end.minute)
+        now = self.get_minutes_into_day(datetime.datetime.now(pytz.timezone('US/Pacific')))
+        start = self.get_minutes_into_day(datetime.datetime.strptime(self.get('notifyQuietStart'), "%H:%M"))
+        end = self.get_minutes_into_day(datetime.datetime.strptime(self.get('notifyQuietEnd'), "%H:%M"))
+        self.notify_quiet = (now >= start and now <= end)
         log.debug("Notifcations quiet: " + str(self.notify_quiet) + ", now: " + str(now) + ", start: " + str(start) + ", end: " + str(end))
 
 # Load our previous door state from last time we ran
