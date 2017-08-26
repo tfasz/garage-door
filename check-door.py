@@ -19,7 +19,7 @@ appDir = os.path.dirname(os.path.realpath(sys.argv[0]))
 logFormat = logging.Formatter('%(asctime)s: %(message)s')
 log = logging.getLogger('check-door')
 log.setLevel(logging.DEBUG)
-logFile = logging.handlers.RotatingFileHandler(appDir + '/logs/check-door.log', maxBytes=100000, backupCount=5)
+logFile = logging.handlers.RotatingFileHandler(appDir + '/logs/check-door.log', maxBytes=1000000, backupCount=5)
 logFile.setFormatter(logFormat)
 log.addHandler(logFile)
 
@@ -44,7 +44,6 @@ class AppConfig:
         start = self.get_minutes_into_day(datetime.datetime.strptime(self.get('notifyQuietStart'), "%H:%M"))
         end = self.get_minutes_into_day(datetime.datetime.strptime(self.get('notifyQuietEnd'), "%H:%M"))
         self.notify_quiet = (now >= start and now <= end)
-        log.debug("Notifcations quiet: " + str(self.notify_quiet) + ", now: " + str(now) + ", start: " + str(start) + ", end: " + str(end))
 
 # Load our previous door state from last time we ran
 class AppState:
