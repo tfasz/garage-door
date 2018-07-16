@@ -85,7 +85,7 @@ class DoorState:
             # Value is very consistently in the 200 range when closed.
             if self.value > 0 and self.value < 10000:
                 self.valid = True 
-                if self.value > 500:
+                if self.value > 800:
                     self.open = True
             log.debug('Value: {0}, Valid: {1}, Open: {2}'.format(self.value, self.valid, self.open))
         except Exception as e:
