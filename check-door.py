@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import datetime
 import dateutil.parser    # pip install python-dateutil
@@ -7,9 +7,9 @@ import logging.handlers
 import json
 import os
 import pytz
+import requests
 import sys
 import time
-import urllib2
 
 appDir = os.path.dirname(os.path.realpath(sys.argv[0]))
 now = datetime.datetime.now()
@@ -76,10 +76,8 @@ class DoorState:
         self.open = False
         try:
             url = config.get('particle.url').format(config.get('particle.device'), config.get('particle.variable'), config.get('particle.token'))
-            q = urllib2.urlopen(url)
-            gd = q.read()
-            q.close()
-            self.value = int(gd)
+            r = requests.get(url)
+            self.value = int(r.text)
 
             # Ignore values if too large or small - assume something is wrong with sensor data.
             # Value is very consistently in the 200 range when closed.
