@@ -101,8 +101,7 @@ class Slack:
         try:
             log.debug('Sending message: ' + msg)
             data = 'payload={{"username": "{0}", "text": "{1}"}}'.format(config.get('slack.user'), msg)
-            r = urllib2.Request(config.get('slack.url'))
-            urllib2.urlopen(r, data)
+            r = requests.post(config.get('slack.url'), json=data)
         except Exception as e:
             log.exception("Error sending message.")
 
