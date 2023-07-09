@@ -11,6 +11,8 @@ import requests
 import sys
 import time
 
+from slack_sdk.webhook import WebhookClient
+
 appDir = os.path.dirname(os.path.realpath(sys.argv[0]))
 now = datetime.datetime.now()
 
@@ -100,14 +102,16 @@ class Slack:
     def send(self, msg):
         try:
             log.debug('Sending message: ' + msg)
-            data = 'payload={{"username": "{0}", "text": "{1}"}}'.format(config.get('slack.user'), msg)
-            r = requests.post(config.get('slack.url'), json=data)
+            slack = WebhookClient(config.get('slack.url'))
+            r = slack.send(text=msg)
+            log.debug('Slack response: #{0} {1}'.format(r.status_code, r.body))
         except Exception as e:
             log.exception("Error sending message.")
 
 # Load config and door state
 config = AppConfig()
 door = DoorState(config)
+#door.open = True
 
 if not door.valid:
     sys.exit() 
