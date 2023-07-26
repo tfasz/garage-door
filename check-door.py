@@ -144,7 +144,7 @@ if door.open:
         state.set('lastOpenNotify', now.isoformat())
         msg = 'Garage door is open.'
         if openMinutes > 0:
-            msg = "Garage door has been open for " + str(openMinutes) + " minute(s)."
+            msg = "Garage door has been open for " + str(round(openMinutes)) + " minute(s)."
 
             # If it has been open for more than specified minute threshold also specify @channel
             if openMinutes > config.get('notifyChannelMinutes') and not config.notify_quiet:
